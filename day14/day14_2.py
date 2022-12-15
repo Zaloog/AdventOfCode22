@@ -1,4 +1,6 @@
 import numpy as np
+import sys
+sys.setrecursionlimit(35000)
 
 def reader(file):
     with open(file, "r") as f:
@@ -10,9 +12,9 @@ class Map():
 
     def __init__(self, lines):
         self.lines = lines
-        self.col_max = max([arr[0] for i in self.lines for arr in i])
+        self.col_max = max([arr[0] for i in self.lines for arr in i]) 
         self.row_max = max([arr[1] for i in self.lines for arr in i])
-        self.mapsize = (self.row_max+1,self.col_max+1) 
+        self.mapsize = (self.row_max+1 +10,self.col_max+1 + 500 ) 
         self.map = np.zeros(self.mapsize, dtype=int).astype(str)
         self.sandstart = (0, 500)
         self.n_sand = 0
@@ -26,49 +28,37 @@ class Map():
                 rows = sorted([row_start, row_end])
 
                 self.map[rows[0]:rows[1]+1, cols[0]:cols[1]+1] = "#"
+        # add bottom line
+        self.map[self.row_max+2, : ] = "#"
 
     def sand_flow(self, pos):
         row, col = pos
-        last_pos = pos
-        flow = True
-        while flow:
-        # down
+        while self.map[pos] != "O":
+            # down
             if (self.map[row+1, col] != "#") and (self.map[row+1, col] != "O"):
                 row += 1
-                #self.sand_flow((row,col))
-        # diag left
+            # diag left
             elif (self.map[row+1, col-1] != "#") and (self.map[row+1, col-1] != "O"):
                 row += 1
                 col -= 1
-                #self.sand_flow((row,col))
-        # diag right
+            # diag right
             elif (self.map[row+1, col+1] != "#") and (self.map[row+1, col+1] != "O"):
                 row += 1
                 col += 1
-                #self.sand_flow((row,col))
-        # else stop
+            # else stop
             else: 
+                self.n_sand += 1
                 self.map[row, col] = "O"
-                if last_pos == (row, col):
-                    flow = False
-                else:
-                    last_pos = (row, col)
-                    self.n_sand += 1
-                    try:
-                        self.sand_flow(pos)
-                    except IndexError:
-                        break
-        #self.map[pos] = "+"
-        print(self.map[ 0:11, 494:504])
+                # reset position
+                row, col = pos
 
-        pass
 
 
 def result(lines):
-    line_instr = lines
     sand_start = (0, 500)
     map = Map(lines)  
     map.build()
+    print(map.mapsize)
     map.sand_flow(pos=sand_start)
     res=map.n_sand
 
